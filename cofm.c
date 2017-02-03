@@ -18,6 +18,8 @@
 #define COFFEE_TIME	3000
 #define MILK_TIME	3000
 
+#define COFFEE_PRICE	50
+
 enum cofm_state {
   COFM_WAITING,
   COFM_CUP,
@@ -31,7 +33,7 @@ extern int change;
 
 int button = 0;
 static void button_isr (void) { button = 1; }
-static int button_pressed (fsm_t* this) { return button && money >= 50; }
+static int button_pressed (fsm_t* this) { return button && money >= COFFEE_PRICE; }
 
 
 int timer = 0;
@@ -62,7 +64,7 @@ static void cup (fsm_t* this)
   digitalWrite (GPIO_CUP, HIGH);
   timer_start (CUP_TIME);
   button = 0;
-  money -= 50;
+  money -= COFFEE_PRICE;
 }
 
 static void coffee (fsm_t* this)

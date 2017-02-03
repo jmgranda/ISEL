@@ -12,16 +12,18 @@ enum purse_state {
   PURSE_WAITING,
 };
 
-int money = 0; // Tendrá que ser externa para cofm.c y main.c
-int coin = 0;  // Tendrá que ser externa para cofm.c y main.c
+int money = 0;   // Tendrá que ser externa para cofm.c y main.c
+int coin = 0;    // Tendrá que ser externa para cofm.c y main.c
+int change = 0;  // Tendrá que ser externa para cofm.c y main.c
 
 static int coin_intro (fsm_t* this) { return coin; }
-
-
-int change = 0; // Tendrá que ser externa para cofm.c 
 static int change_read (fsm_t* this) { return change; }
 
-static void money_add (fsm_t* this) { money += coin; coin = 0; }
+static void money_add (fsm_t* this) 
+{ 
+  money += coin; 
+  DEBUG (printf ("money = %d\n", money));
+  coin = 0; }
 static void change_return (fsm_t* this) { money = 0; change = 0; }
 
 // Explicit FSM description

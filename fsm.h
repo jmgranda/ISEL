@@ -1,6 +1,12 @@
 #ifndef FSM_H
 #define FSM_H
 
+#ifndef NDEBUG
+# define DEBUG(x) x
+#else
+# define DEBUG(x)
+#endif
+
 typedef struct fsm_t fsm_t;
 
 typedef int (*fsm_input_func_t) (fsm_t*);
