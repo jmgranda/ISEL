@@ -8,13 +8,16 @@
 #include <wiringPi.h>
 #include "fsm.h"
 #include "task.h"
+#include "interp.h"
 
+void cofm_setup (void);
 fsm_t* cofm_fsm_new (void);
+extern int change;
+
+void purse_setup (void);
 fsm_t* purse_fsm_new (void);
 extern int button;
 extern int timer;
-extern int coin;
-extern int change;
 
 
 // Utility functions, should be elsewhere
@@ -52,9 +55,14 @@ void* main_ec (void* arg)
 
 int main ()
 {
+	purse_setup ();
+	cofm_setup ();
 	task_new ("ec", main_ec, 0, 0, 1, 1024);
-	while (scanf("%d %d %d %d", &button, &coin, &change, &timer) == 4)
-		;
+	interp_run ();
+/*	while (scanf("%d %d %d %d", &button, &coin, &change, &timer) == 4)
+		timeval_add (&next_activation, &next_activation, &clk_period);
+		delay_until (&next_activation);
+*/
 	return 0;
 }
 
