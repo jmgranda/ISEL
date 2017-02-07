@@ -21,33 +21,50 @@ extern int timer;
 
 
 // Utility functions, should be elsewhere
+struct timespec now, next_activation, timeout;
 
-// wait until next_activation (absolute time)
-void delay_until (struct timeval* next_activation)
+// Wait until next_activation (clock_gettime and nanosleep)
+void delay_until (struct timespec* next_activation)
 {
-  struct timeval now, timeout;
-  gettimeofday (&now, NULL);
-  timeval_sub (&timeout, next_activation, &now);
-  select (0, NULL, NULL, NULL, &timeout);
+  // struct timeval now, timeout;
+  // gettimeofday (&now, NULL);
+  clock_gettime (CLOCK_MONOTONIC, &now);
+  timespec_sub (&timeout, next_activation, &now);
+  // select (0, NULL, NULL, NULL, &timeout);
+  nanosleep (&now, NULL);
 }
 
 
 /* Coffee machine with credit check and give change activation */
-void* main_ec (void* arg)
+void* cofm_func (void* arg)
 {
-  struct timeval clk_period = { 0, 250 * 1000 };
-  struct timeval next_activation;
-
-  wiringPiSetup();
+  struct timespec next_activation;
+  struct timespec *period = task_get_period (pthread_self());
 
   fsm_t* cofm_fsm = cofm_fsm_new ();
-  fsm_t* purse_fsm = purse_fsm_new ();
 
-  gettimeofday (&next_activation, NULL);
+  // gettimeofday (&next_activation, NULL);
+  clock_gettime (CLOCK_MONOTONIC, &next_activation);
   while (1) {
     fsm_fire (cofm_fsm);
+    timespec_add (&next_activation, &next_activation, period);
+    delay_until (&next_activation);
+  }
+  return NULL;
+}
+
+void* purse_func (void* arg)
+{
+  struct timespec next_activation;
+  struct timespec *period = task_get_period (pthread_self());
+
+  fsm_t* purse_fsm = purse_fsm_new ();
+
+  // gettimeofday (&next_activation, NULL);
+  clock_gettime (CLOCK_MONOTONIC, &next_activation);
+  while (1) {
     fsm_fire (purse_fsm);
-    timeval_add (&next_activation, &next_activation, &clk_period);
+    timespec_add (&next_activation, &next_activation, period);
     delay_until (&next_activation);
   }
   return NULL;
@@ -55,14 +72,17 @@ void* main_ec (void* arg)
 
 int main ()
 {
-	purse_setup ();
-	cofm_setup ();
-	task_new ("ec", main_ec, 0, 0, 1, 1024);
-	interp_run ();
-/*	while (scanf("%d %d %d %d", &button, &coin, &change, &timer) == 4)
-		timeval_add (&next_activation, &next_activation, &clk_period);
-		delay_until (&next_activation);
-*/
-	return 0;
+  wiringPiSetup();
+
+  purse_setup ();
+  cofm_setup ();
+  task_new ("cofm",  cofm_func,  250, 250, 2, 1024);
+  task_new ("purse", purse_func, 250, 250, 1, 1024);
+  interp_run ();
+  /*	while (scanf("%d %d %d %d", &button, &coin, &change, &timer) == 4)
+	timeval_add (&next_activation, &next_activation, &clk_period);
+	delay_until (&next_activation);
+  */
+  return 0;
 }
 
