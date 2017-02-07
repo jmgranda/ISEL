@@ -9,8 +9,8 @@
 typedef struct taskdesk_t {
   pthread_t tid;
   const char* name;
-  struct timeval period;
-  struct timeval deadline;
+  struct timespec period;
+  struct timespec deadline;
   int prio;
 } taskdesc_t;
 
@@ -28,14 +28,14 @@ taskdesc_find (pthread_t tid)
   return NULL;
 }
 
-struct timeval*
+struct timespec*
 task_get_period (pthread_t tid)
 {
   taskdesc_t* this = taskdesc_find (tid);
   return &this->period;
 }
 
-struct timeval*
+struct timespec*
 task_get_deadline (pthread_t tid)
 {
   taskdesc_t* this = taskdesc_find (tid);
@@ -62,9 +62,9 @@ task_new (const char* name, void *(*f)(void *),
   tdesc->name = name;
   tdesc->prio = prio;
   tdesc->period.tv_sec = period_ms / 1000;
-  tdesc->period.tv_usec = (period_ms % 1000) * 1000;
+  tdesc->period.tv_nsec = (period_ms % 1000) * 1000000L;
   tdesc->deadline.tv_sec = deadline_ms / 1000;
-  tdesc->deadline.tv_usec = (deadline_ms % 1000) * 1000;
+  tdesc->deadline.tv_nsec = (deadline_ms % 1000) * 1000000L;
 
   return tdesc->tid;
 }
@@ -103,11 +103,30 @@ timeval_sub (struct timeval *res, struct timeval *a, struct timeval *b)
 }
 
 void
+timespec_sub (struct timespec *res, struct timespec *a, struct timespec *b)
+{
+  res->tv_sec = a->tv_sec - b->tv_sec;
+  res->tv_nsec = a->tv_nsec - b->tv_nsec;
+  if (res->tv_nsec < 0) {
+    --res->tv_sec;
+    res->tv_nsec += 1000000000L;
+  }
+}
+
+void
 timeval_add (struct timeval *res, struct timeval *a, struct timeval *b)
 {
   res->tv_sec = a->tv_sec + b->tv_sec
     + a->tv_usec / 1000000 + b->tv_usec / 1000000; 
   res->tv_usec = a->tv_usec % 1000000 + b->tv_usec % 1000000;
+}
+
+void
+timespec_add (struct timespec *res, struct timespec *a, struct timespec *b)
+{
+  res->tv_sec = a->tv_sec + b->tv_sec
+    + a->tv_nsec / 1000000000L + b->tv_nsec / 1000000000L; 
+  res->tv_nsec = a->tv_nsec % 1000000000L + b->tv_nsec % 1000000000L;
 }
 
 int

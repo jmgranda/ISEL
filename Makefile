@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -O -I. -DNDEBUG
+CFLAGS=-g -Wall -O -I. -DNDEBUG -D_GNU_SOURCE
 LDFLAGS=-L.
 LDLIBS=-lwiringPi -lpthread -lrt -lreadline
 
