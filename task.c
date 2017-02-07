@@ -1,6 +1,6 @@
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
+// #include <pthread.h>
+// #include <time.h>
+// #include <sys/time.h>
 #include <string.h>
 #include "task.h"
 
@@ -72,6 +72,8 @@ task_new (const char* name, void *(*f)(void *),
 void
 mutex_init (pthread_mutex_t* m, int prioceiling)
 {
+  int oldprio;
+
   pthread_mutexattr_t attr;
   pthread_mutexattr_init (&attr);
   
@@ -85,7 +87,7 @@ mutex_init (pthread_mutex_t* m, int prioceiling)
 
   /* Only for priority ceiling protocol (not in Xenomai) */
   pthread_mutex_setprioceiling
-    (m, sched_get_priority_min(SCHED_FIFO) + prioceiling, NULL);
+    (m, sched_get_priority_min(SCHED_FIFO) + prioceiling, &oldprio);
 }
 
 
