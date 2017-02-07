@@ -62,9 +62,9 @@ task_new (const char* name, void *(*f)(void *),
   tdesc->name = name;
   tdesc->prio = prio;
   tdesc->period.tv_sec = period_ms / 1000;
-  tdesc->period.tv_usec = (period_ms % 1000) * 1000;
+  tdesc->period.tv_nsec = (period_ms % 1000) * 1000000L;
   tdesc->deadline.tv_sec = deadline_ms / 1000;
-  tdesc->deadline.tv_usec = (deadline_ms % 1000) * 1000;
+  tdesc->deadline.tv_nsec = (deadline_ms % 1000) * 1000000L;
 
   return tdesc->tid;
 }
