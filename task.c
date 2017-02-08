@@ -77,7 +77,7 @@ mutex_init (pthread_mutex_t* m, int prioceiling)
   pthread_mutexattr_t attr;
   pthread_mutexattr_init (&attr);
   
-  /* Only for priority ceiling protocol (not in Xenomai) */
+  /* Only for inmediate priority ceiling protocol (not in Xenomai) */
   pthread_mutexattr_setprotocol (&attr, PTHREAD_PRIO_PROTECT);
 
   /* Only for priority inheritance protocol */ 

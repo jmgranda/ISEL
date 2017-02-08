@@ -15,7 +15,7 @@ enum purse_state {
 };
 
 int money = 0;   // Tendrá que ser externa para cofm.c y main.c
-static int coin = 0;    // Tendrá que ser externa para cofm.c y main.c
+static int coin = 0;   
 int change = 0;  // Tendrá que ser externa para cofm.c y main.c
 
 static int coin_intro (fsm_t* this) { return coin; }
