@@ -31,7 +31,7 @@ void delay_until (struct timespec* next_activation)
   clock_gettime (CLOCK_MONOTONIC, &now);
   timespec_sub (&timeout, next_activation, &now);
   // select (0, NULL, NULL, NULL, &timeout);
-  nanosleep (&now, NULL);
+  nanosleep (&timeout, NULL);
 }
 
 
