@@ -16,27 +16,9 @@ enum purse_state {
 };
 
 static int money = 0;   // Tendrá que ser externa para cofm.c y main.c
-static pthread_mutex_t m_money;
 
-int money_get (void)
-{
-  int ret;
-  pthread_mutex_lock (&m_money);
-  ret = money;
-  pthread_mutex_unlock (&m_money);
-  return ret;
-}
-
-int money_add (int value)
-{
-  int ret;
-  pthread_mutex_lock (&m_money);
-  ret = money += value;
-  pthread_mutex_unlock (&m_money);
-  return ret;
-}
-
-
+int money_get (void) { return money; }
+int money_add (int value) { return money += value; }
 
 static int change = 0;  // Tendrá que ser externa para cofm.c y main.c
 void change_set (void) { change = 1; }
