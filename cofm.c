@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <wiringPi.h>
 #include "fsm.h"
+#include "task.h"
 #include "interp.h"
 
 #define GPIO_BUTTON	2
@@ -29,12 +30,14 @@ enum cofm_state {
 };
 
 
-extern int money;
-extern int change;
+int money_get (void);
+int money_add (int value);
+
+void change_set (void);
 
 static int button = 0;
 static void button_isr (void) { button = 1; }
-static int button_pressed (fsm_t* this) { return button && money >= COFFEE_PRICE; }
+static int button_pressed (fsm_t* this) { return button && money_get() >= COFFEE_PRICE; }
 
 
 int timer = 0;
@@ -65,7 +68,7 @@ static void cup (fsm_t* this)
   digitalWrite (GPIO_CUP, HIGH);
   timer_start (CUP_TIME);
   button = 0;
-  money -= COFFEE_PRICE;
+  money_add (-COFFEE_PRICE);
 }
 
 static void coffee (fsm_t* this)
@@ -86,7 +89,7 @@ static void finish (fsm_t* this)
 {
   digitalWrite (GPIO_MILK, LOW);
   digitalWrite (GPIO_LED, HIGH);
-  change = 1;
+  change_set ();
 }
 
 
@@ -118,12 +121,7 @@ static int cmd_coffee (char *arg)
 	return 0;
 }
 
-/* static int cmd_money (char *arg) RETADOR!!!
-{
-	printf ("Coffee machine is: %d\n", money);
-	return 0;
-}
-*/
+
 void cofm_setup (void)
 {
 	interp_addcmd ("coffee", cmd_coffee, "Ask for a coffee");

@@ -14,7 +14,7 @@ void cofm_setup (void);
 fsm_t* cofm_fsm_new (void);
 extern int change;
 
-void purse_setup (void);
+void purse_setup (int prioceiling);
 fsm_t* purse_fsm_new (void);
 extern int button;
 extern int timer;
@@ -69,7 +69,7 @@ int main ()
 {
   wiringPiSetup();
 
-  purse_setup ();
+  purse_setup (2);
   cofm_setup ();
   task_new ("cofm",  cofm_func,  250, 250, 2, 1024);
   task_new ("purse", purse_func, 250, 250, 1, 1024);
