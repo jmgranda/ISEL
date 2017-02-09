@@ -8,60 +8,60 @@
 #include <wiringPi.h>
 #include "fsm.h"
 #include "task.h"
+#include "reactor.h"
 #include "interp.h"
 
 void cofm_setup (void);
 fsm_t* cofm_fsm_new (void);
-extern int change;
 
-void purse_setup (int prioceiling);
+void purse_setup (void);
 fsm_t* purse_fsm_new (void);
-extern int button;
-extern int timer;
 
-
-// Utility functions, should be elsewhere
-
-// Wait until next_activation (clock_gettime and nanosleep)
-void delay_until (struct timespec* next_activation)
+static
+void
+purse_func (struct event_handler_t* this)
 {
-  struct timespec now, timeout;
-  clock_gettime (CLOCK_MONOTONIC, &now);
-  timespec_sub (&timeout, next_activation, &now);
-  nanosleep (&timeout, NULL);
+  static const struct timeval period = { 0, 250*000 };
+  static fsm_t* purse_fsm = NULL;
+
+  if (!purse_fsm) 
+	purse_fsm = purse_fsm_new ();
+
+  fsm_fire (purse_fsm);
+  
+  timeval_add (&this->next_activation, &this->next_activation, &period);
 }
 
+static
+void
+cofm_func (struct event_handler_t* this)
+{
+  static const struct timeval period = { 0, 250*000 };
+  static fsm_t* cofm_fsm = NULL;
+
+  if (!cofm_fsm) 
+	cofm_fsm = cofm_fsm_new ();
+
+  fsm_fire (cofm_fsm);
+  
+  timeval_add (&this->next_activation, &this->next_activation, &period);
+}
 
 /* Coffee machine with credit check and give change activation */
-void* cofm_func (void* arg)
+void* main_reactor (void* arg)
 {
-  struct timespec next_activation;
-  struct timespec *period = task_get_period (pthread_self());
+  EventHandler purse_eh, cofm_eh;
+  reactor_init ();
 
-  fsm_t* cofm_fsm = cofm_fsm_new ();
+  event_handler_init (&purse_eh, 1, purse_func);  
+  event_handler_init (&cofm_eh, 1, cofm_func);
+  reactor_add_handler (&purse_eh);
+  reactor_add_handler (&cofm_eh);
 
-  clock_gettime (CLOCK_MONOTONIC, &next_activation);
   while (1) {
-    fsm_fire (cofm_fsm);
-    timespec_add (&next_activation, &next_activation, period);
-    delay_until (&next_activation);
+    reactor_handle_events ();
   }
-  return NULL;
-}
 
-void* purse_func (void* arg)
-{
-  struct timespec next_activation;
-  struct timespec *period = task_get_period (pthread_self());
-
-  fsm_t* purse_fsm = purse_fsm_new ();
-
-  clock_gettime (CLOCK_MONOTONIC, &next_activation);
-  while (1) {
-    fsm_fire (purse_fsm);
-    timespec_add (&next_activation, &next_activation, period);
-    delay_until (&next_activation);
-  }
   return NULL;
 }
 
@@ -69,12 +69,12 @@ int main ()
 {
   wiringPiSetup();
 
-  purse_setup (2);
+  purse_setup ();
   cofm_setup ();
-  task_new ("cofm",  cofm_func,  250, 250, 2, 1024);
-  task_new ("purse", purse_func, 250, 250, 1, 1024);
+  task_new ("reactor", main_reactor, 0, 0, 1, 1024);
   interp_run ();
-
   return 0;
 }
+
+
 

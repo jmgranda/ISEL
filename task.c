@@ -92,7 +92,7 @@ mutex_init (pthread_mutex_t* m, int prioceiling)
 
 
 void
-timeval_sub (struct timeval *res, struct timeval *a, struct timeval *b)
+timeval_sub (struct timeval *res, const struct timeval *a, const struct timeval *b)
 {
   res->tv_sec = a->tv_sec - b->tv_sec;
   res->tv_usec = a->tv_usec - b->tv_usec;
@@ -103,7 +103,7 @@ timeval_sub (struct timeval *res, struct timeval *a, struct timeval *b)
 }
 
 void
-timespec_sub (struct timespec *res, struct timespec *a, struct timespec *b)
+timespec_sub (struct timespec *res, const struct timespec *a, const struct timespec *b)
 {
   res->tv_sec = a->tv_sec - b->tv_sec;
   res->tv_nsec = a->tv_nsec - b->tv_nsec;
@@ -114,7 +114,7 @@ timespec_sub (struct timespec *res, struct timespec *a, struct timespec *b)
 }
 
 void
-timeval_add (struct timeval *res, struct timeval *a, struct timeval *b)
+timeval_add (struct timeval *res, const struct timeval *a, const struct timeval *b)
 {
   res->tv_sec = a->tv_sec + b->tv_sec
     + a->tv_usec / 1000000 + b->tv_usec / 1000000; 
@@ -122,7 +122,7 @@ timeval_add (struct timeval *res, struct timeval *a, struct timeval *b)
 }
 
 void
-timespec_add (struct timespec *res, struct timespec *a, struct timespec *b)
+timespec_add (struct timespec *res, const struct timespec *a, const struct timespec *b)
 {
   res->tv_sec = a->tv_sec + b->tv_sec
     + a->tv_nsec / 1000000000L + b->tv_nsec / 1000000000L; 
@@ -130,14 +130,14 @@ timespec_add (struct timespec *res, struct timespec *a, struct timespec *b)
 }
 
 int
-timeval_less (struct timeval *a, struct timeval *b)
+timeval_less (const struct timeval *a, const struct timeval *b)
 {
   return (a->tv_sec < b->tv_sec) ||
     ((a->tv_sec == b->tv_sec) && (a->tv_usec < b->tv_usec));
 }
 
 int
-timeval_get_ms (struct timeval *a)
+timeval_get_ms (const struct timeval *a)
 {
   return a->tv_sec * 1000 + a->tv_usec / 1000;
 }
