@@ -10,6 +10,13 @@
 #include "task.h"
 #include "interp.h"
 
+#define FREQ 9
+#define NUM_CHAR 5
+#define CHAR_W 8
+#define CHAR_H 8
+
+int buf[NUM_CHAR * CHAR_W ]
+
 void cofm_setup (void);
 fsm_t* cofm_fsm_new (void);
 extern int change;
@@ -34,8 +41,14 @@ void delay_until (struct timespec* next_activation)
 
 
 /* Coffee machine with credit check and give change activation */
-void* main_ec (void* arg)
+void* main_clock (void* arg)
 {
+  /* Get time from system and calculate char buffer */
+  struct tm systemtime = *localtime (void);
+  for (i = 0; i < NUM_CHAR; ++i) {
+    render (buf, i);
+  } 
+
   struct timespec clk_period = { 0, 250 * 1000000L };
   struct timespec next_activation;
 
@@ -59,7 +72,7 @@ int main ()
 
   purse_setup ();
   cofm_setup ();
-  task_new ("ec", main_ec, 0, 0, 1, 1024);
+  task_new ("clock", main_clock, int T = 1 / FREQ, T, 1, 1024);
   interp_run ();
 
   return 0;

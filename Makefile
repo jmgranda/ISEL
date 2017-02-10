@@ -5,7 +5,7 @@ LDLIBS=-lwiringPi -lpthread -lrt -lreadline
 
 all: libwiringPi.a main
 
-main: main.o cofm.o purse.o fsm.o task.o interp.o
+main: main.o cofm.o purse.o fsm.o task.o interp.o render.o
 
 test: main
 	@for i in test/*.test ; do \
