@@ -6,7 +6,6 @@
 #include <time.h>
 #include <signal.h>
 #include <wiringPi.h>
-#include "fsm.h"
 #include "task.h"
 #include "interp.h"
 
@@ -22,9 +21,10 @@ int ir = 0;
 
 void render ();
 
-static void ir_isr (void) { ir = 1; }
+static int ir_isr (char *arg) { ir = 1; return 0; }
 
-// Wait until next_activation (clock_gettime and nanosleep)
+
+/* Wait until next_activation (based on clock_gettime and nanosleep) */
 void delay_until (struct timespec* next_activation)
 {
   struct timespec now, timeout;
@@ -66,9 +66,10 @@ void* main_clock (void* arg)
     if (! ir) {
       timespec_add (&next_activation, &next_activation, &tcol);
       active_delay_until (&next_activation);
+      ir = 1;
       continue;
     }
-
+    
     ir = 0;
 
     for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
@@ -91,33 +92,15 @@ void* main_clock (void* arg)
     render (buf + CHAR_W * 1, lt->tm_hour % 10);
     render (buf + CHAR_W * 3, lt->tm_min / 10);
     render (buf + CHAR_W * 4, lt->tm_min % 10);
-    /* Check buffer
-    int i;
+    /* Check buffer */
+    int test;
     for (test = 0; test < NUM_CHAR * CHAR_W; ++test) {
       printf ("%d", buf[test]);
     }
     printf ("\n");
-    */
+
   }
   
-  
-
-/*
-  struct timespec clk_period = { 0, 250 * 1000000L };
-  struct timespec next_activation;
-
-  fsm_t* cofm_fsm = cofm_fsm_new ();
-  fsm_t* purse_fsm = purse_fsm_new ();
-
-
-  clock_gettime (CLOCK_MONOTONIC, &next_activation);
-  while (1) {
-    fsm_fire (cofm_fsm);
-    fsm_fire (purse_fsm);
-    timespec_add (&next_activation, &next_activation, &clk_period);
-    delay_until (&next_activation);
-  }
-*/  
   return NULL;
 }
 
@@ -125,6 +108,7 @@ int main ()
 {
   wiringPiSetup();
 
+  interp_addcmd ("ir", ir_isr, "Clock activation by IR");
   task_new ("clock", main_clock, 0, 0, 1, 1024);
   interp_run ();
 
