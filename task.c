@@ -137,6 +137,14 @@ timeval_less (struct timeval *a, struct timeval *b)
 }
 
 int
+timespec_less (struct timespec *a, struct timespec *b)
+{
+  return (a->tv_sec < b->tv_sec) ||
+    ((a->tv_sec == b->tv_sec) && (a->tv_nsec < b->tv_nsec));
+}
+
+
+int
 timeval_get_ms (struct timeval *a)
 {
   return a->tv_sec * 1000 + a->tv_usec / 1000;

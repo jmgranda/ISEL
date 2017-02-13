@@ -22,6 +22,7 @@ int timeval_get_ms (struct timeval *a);
 
 void timespec_sub (struct timespec *res, struct timespec *a, struct timespec *b);
 void timespec_add (struct timespec *res, struct timespec *a, struct timespec *b);
+int timespec_less (struct timespec *a, struct timespec *b);
 
 #endif
 
