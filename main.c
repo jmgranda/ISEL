@@ -46,7 +46,7 @@ void active_delay_until (struct timespec* next_activation)
 /* Clock gets time from system, calculates buffer and paints time */
 void* main_clock (void* arg)
 {
-  struct timespec tcol = { 0, 1000000000L / (2 * 9 * NUM_CHAR * CHAR_W) };
+  struct timespec tcol = { 0, 8 * 1000000000L / (2 * 9 * NUM_CHAR * CHAR_W) };
   struct timespec next_activation;
   time_t t;
   struct tm* lt;
@@ -71,16 +71,19 @@ void* main_clock (void* arg)
     }
     
     ir = 0;
-
-    for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
-      char col = buf[i];
-      int led;
-      for (led = 0; led < 8; ++led) {
-        digitalWrite (gpio[led], (col & (1 << led)) ? HIGH : LOW);
+    
+    /* Screen paint for simulation purposes */
+    int led;
+    for (led = 0; led < 8; ++led) {
+      for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
+        char col = buf[i];
+        printf ("%s", (col & (1 << led)) ? "|" : " ");
+        // digitalWrite (gpio[led], (col & (1 << led)) ? HIGH : LOW);
       }
-      timespec_add (&next_activation, &next_activation, &tcol);
-      active_delay_until (&next_activation);
+      printf ("\n");
     }
+    timespec_add (&next_activation, &next_activation, &tcol);
+    active_delay_until (&next_activation);
 
     /* Get time from system */
     time (&t);
@@ -92,13 +95,13 @@ void* main_clock (void* arg)
     render (buf + CHAR_W * 1, lt->tm_hour % 10);
     render (buf + CHAR_W * 3, lt->tm_min / 10);
     render (buf + CHAR_W * 4, lt->tm_min % 10);
-    /* Check buffer */
+    /* Check buffer
     int test;
     for (test = 0; test < NUM_CHAR * CHAR_W; ++test) {
       printf ("%d", buf[test]);
     }
     printf ("\n");
-
+    */
   }
   
   return NULL;
