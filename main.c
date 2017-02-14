@@ -72,7 +72,18 @@ void* main_clock (void* arg)
     
     ir = 0;
     
-    /* Screen paint for simulation purposes */
+    /* wiringPi GPIO paint closer to real final ver */
+    for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
+      char col = buf[i];
+      int led;
+      for (led = 0; led < 8; ++led) {      
+        digitalWrite (gpio[led], (col & (1 << led)) ? HIGH : LOW);
+      }
+      timespec_add (&next_activation, &next_activation, &tcol);
+      active_delay_until (&next_activation);
+    }
+
+    /* Screen paint for simulation purposes 
     int led;
     for (led = 0; led < 8; ++led) {
       for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
@@ -84,6 +95,7 @@ void* main_clock (void* arg)
     }
     timespec_add (&next_activation, &next_activation, &tcol);
     active_delay_until (&next_activation);
+    */
 
     /* Get time from system */
     time (&t);
