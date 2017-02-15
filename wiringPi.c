@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "task.h"
 #include "interp.h"
@@ -19,10 +20,12 @@ static void
 screen_dump (void)
 {
   int i;
-  printf ("\e7\e[?25l\e[s\e[1;1f"); // save cursor pos, goto (1,1)
+  const char* term_cols = getenv ("COLUMNS");
+  int x = term_cols? atoi(term_cols) - (NUM_CHAR * CHAR_W) : 40;
+  printf ("\e7\e[?25l\e[s"); // save cursor pos
   for (i = 0; i < CHAR_H; ++i)
-    puts (screen[i]);
-  printf ("\e[u\e8\e[?25h"); // restore cursor pos
+    printf ("\e[%d;%df%s", i+1, x, screen[i]); // goto row;col
+  printf ("\e[u\e[?25h\e8"); // restore cursor pos
 }
 
 void 
