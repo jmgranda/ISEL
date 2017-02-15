@@ -16,12 +16,14 @@
 #define CHAR_W 8
 #define CHAR_H 8
 
+void pendulum_setup (void);
+void render (char* buf, int n);
+
 static char buf[NUM_CHAR * CHAR_W];
 int ir = 0;
 
-void render ();
+static void ir_isr (void) { ir = 1; }
 
-static int ir_isr (char *arg) { ir = 1; return 0; }
 
 
 /* Wait until next_activation (based on clock_gettime and nanosleep) */
@@ -43,36 +45,19 @@ void active_delay_until (struct timespec* next_activation)
   }
 }
 
-/* Clock gets time from system, calculates buffer and paints time */
-void* main_clock (void* arg)
+
+static void
+pintar (void)
 {
-  struct timespec tcol = { 0, 8 * 1000000000L / (2 * 9 * NUM_CHAR * CHAR_W) };
-  struct timespec next_activation;
-  time_t t;
-  struct tm* lt;
-  const int gpio[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    const struct timespec tcol = { 0, 1000000000L / (2 * FREQ * NUM_CHAR * CHAR_W) };
+    struct timespec next_activation;
 
-  /* Colon between Hours and Minutes */
-  buf[16] = buf[17] = buf[18] = buf[21] = buf[22] = buf[23] = 0;
-  buf[19] = buf[20] = 0x66;
-
-  wiringPiISR (GPIO_IR, INT_EDGE_FALLING, ir_isr);
-  
-  while (1) {
     /* Light Time (paint) */
     int i;
+    const int gpio[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-    clock_gettime (CLOCK_MONOTONIC, &next_activation);
-    if (! ir) {
-      timespec_add (&next_activation, &next_activation, &tcol);
-      active_delay_until (&next_activation);
-      ir = 1;
-      continue;
-    }
-    
-    ir = 0;
-    
     /* wiringPi GPIO paint closer to real final ver */
+    clock_gettime (CLOCK_MONOTONIC, &next_activation);
     for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
       char col = buf[i];
       int led;
@@ -82,49 +67,57 @@ void* main_clock (void* arg)
       timespec_add (&next_activation, &next_activation, &tcol);
       active_delay_until (&next_activation);
     }
+}
 
-    /* Screen paint for simulation purposes 
-    int led;
-    for (led = 0; led < 8; ++led) {
-      for (i = 0; i < NUM_CHAR * CHAR_W; ++i) {
-        char col = buf[i];
-        printf ("%s", (col & (1 << led)) ? "|" : " ");
-        // digitalWrite (gpio[led], (col & (1 << led)) ? HIGH : LOW);
-      }
-      printf ("\n");
-    }
-    timespec_add (&next_activation, &next_activation, &tcol);
-    active_delay_until (&next_activation);
-    */
+static void
+calcular (void)
+{
+    time_t t;
+    struct tm* lt;
+
 
     /* Get time from system */
     time (&t);
     lt = localtime (&t);
-    printf ("Hours: %d - Minutes: %d\n", lt->tm_hour, lt->tm_min);
 
     /* Calculate char buffer */
     render (buf + CHAR_W * 0, lt->tm_hour / 10);
     render (buf + CHAR_W * 1, lt->tm_hour % 10);
     render (buf + CHAR_W * 3, lt->tm_min / 10);
     render (buf + CHAR_W * 4, lt->tm_min % 10);
-    /* Check buffer
-    int test;
-    for (test = 0; test < NUM_CHAR * CHAR_W; ++test) {
-      printf ("%d", buf[test]);
+}
+
+/* Clock gets time from system, calculates buffer and paints time */
+void* main_clock (void* arg)
+{
+  const struct timespec tcol = { 0, 1000000000L / (2 * 9 * NUM_CHAR * CHAR_W) };
+  struct timespec next_activation;
+
+  /* Colon between Hours and Minutes */
+  buf[16] = buf[17] = buf[18] = buf[21] = buf[22] = buf[23] = 0;
+  buf[19] = buf[20] = 0x66;
+
+  wiringPiISR (GPIO_IR, INT_EDGE_FALLING, ir_isr);
+
+  clock_gettime (CLOCK_MONOTONIC, &next_activation);
+  while (1) {
+    if (ir) {
+      ir = 0;
+      pintar ();
+      calcular ();
     }
-    printf ("\n");
-    */
+    timespec_add (&next_activation, &next_activation, &tcol);
+    active_delay_until (&next_activation);
   }
-  
   return NULL;
 }
 
 int main ()
 {
-  wiringPiSetup();
+  wiringPiSetup ();
+  pendulum_setup ();
 
-  interp_addcmd ("ir", ir_isr, "Clock activation by IR");
-  task_new ("clock", main_clock, 0, 0, 1, 1024);
+  task_new ("clock", main_clock, 0, 0, 100, 1024);
   interp_run ();
 
   return 0;

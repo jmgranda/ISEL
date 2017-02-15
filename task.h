@@ -15,14 +15,14 @@ struct timespec *task_get_deadline (pthread_t tid);
 
 void mutex_init (pthread_mutex_t* m, int prioceiling);
 
-void timeval_sub (struct timeval *res, struct timeval *a, struct timeval *b);
-void timeval_add (struct timeval *res, struct timeval *a, struct timeval *b);
-int timeval_less (struct timeval *a, struct timeval *b);
+void timeval_sub (struct timeval *res, const struct timeval *a, const struct timeval *b);
+void timeval_add (struct timeval *res, const struct timeval *a, const struct timeval *b);
+int timeval_less (const struct timeval *a, const struct timeval *b);
 int timeval_get_ms (struct timeval *a);
 
-void timespec_sub (struct timespec *res, struct timespec *a, struct timespec *b);
-void timespec_add (struct timespec *res, struct timespec *a, struct timespec *b);
-int timespec_less (struct timespec *a, struct timespec *b);
+void timespec_sub (struct timespec *res, const struct timespec *a, const struct timespec *b);
+void timespec_add (struct timespec *res, const struct timespec *a, const struct timespec *b);
+int timespec_less (const struct timespec *a, const struct timespec *b);
 
 #endif
 
